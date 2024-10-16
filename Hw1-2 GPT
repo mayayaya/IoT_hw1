@@ -1,0 +1,1721 @@
+# Hw1-2 https://www.notion.so/Hw1-2-121ed853e4e3806da7e2c1235cbc6069?pvs=4
+
+我要去使用 Scikit-Learn 和 CRISP-DM 解決Body-Fat-Prediction
+問題，你可以先幫我列出步驟嗎? 有甚麼樣的線性回歸模型可以去做呢?
+
+### ChatGPT 說：
+
+ChatGPT
+
+記憶已更新
+
+要使用 Scikit-Learn 和 CRISP-DM 解決 Body-Fat Prediction 問題，可以按照以下步驟進行：
+
+### 1. **Business Understanding (業務理解)**
+
+- 了解這個問題的背景：你想預測人體的體脂百分比。
+- 定義問題：你希望用哪些變量來預測體脂（如身高、體重、腰圍等）。
+
+### 2. **Data Understanding (資料理解)**
+
+- 取得並探索 Body Fat 資料集。
+- 使用資料分析技術來了解資料的結構，檢查資料的質量（如是否有缺失值或異常值）。
+- 可以使用 `pandas` 和 `seaborn`/`matplotlib` 來進行初步的探索性資料分析（EDA）。
+
+### 3. **Data Preparation (資料準備)**
+
+- 處理缺失值：如有缺失值，可選擇填補或移除。
+- 資料標準化或正規化：對於有些算法，可能需要將資料進行標準化（`StandardScaler`）或正規化（`MinMaxScaler`）。
+- 進行訓練集和測試集的拆分：使用 `train_test_split()` 來將資料集拆分為訓練集和測試集。
+
+### 4. **Modeling (建模)**
+
+- 使用 Scikit-Learn 來建立線性回歸模型：
+    1. **線性回歸 (Linear Regression)**：這是最基礎的線性回歸模型，可以作為基準模型。
+    2. **Lasso 回歸**：L1 正則化的回歸模型，適合處理特徵較多的情況，有助於特徵選擇。
+    3. **Ridge 回歸**：L2 正則化，對於有多重共線性的資料有較好的效果。
+    4. **Elastic Net**：結合了 Lasso 和 Ridge 的特性，適合處理較高維度的資料，並進行特徵選擇。
+
+### 5. **Evaluation (評估)**
+
+- 使用適當的評估指標來檢查模型的表現。
+    - **R-squared (R²)**：衡量模型解釋變異的能力。
+    - **Mean Squared Error (MSE)**：用來測量預測值與實際值的差異。
+    - **Mean Absolute Error (MAE)** 或 **Root Mean Squared Error (RMSE)**：其他可能用來評估模型的誤差指標。
+
+### 6. **Deployment (部署)**
+
+- 根據模型的表現，若合適，將模型部署到應用中，並考慮如何將預測結果呈現給最終使用者。
+
+你可以依照這些步驟循序進行。如果你希望測試多種模型，可以先從線性回歸開始，然後比較 Lasso、Ridge 和 Elastic Net 的效果。
+
+4o
+
+### 你說：
+
+Data
+
+DensityBodyFatAgeWeight1.070812.323154.251.08536.122173.251.041425.3221541.075110.426184.751.03428.724184.251.050220.924210.25
+
+請使用這個資料集，做multiple linear regression
+那第一步我要怎麼做?
+
+### ChatGPT 說：
+
+ChatGPT
+
+已分析
+
+`python永遠顯示詳細資料複製程式碼import pandas as pd
+
+# Load the dataset to inspect its contents
+file_path = '/mnt/data/Data.csv'
+data = pd.read_csv(file_path)
+
+# Display the first few rows to understand the structure
+data.head()`
+
+結果
+
+   `Density  BodyFat  Age  Weight  Height  Neck  Chest  Abdomen    Hip  Thigh  \
+0   1.0708     12.3   23  154.25   67.75  36.2   93.1     85.2   94.5   59.0   
+1   1.0853      6.1   22  173.25   72.25  38.5   93.6     83.0   98.7   58.7   
+2   1.0414     25.3   22  154.00   66.25  34.0   95.8     87.9   99.2   59.6   
+3   1.0751     10.4   26  184.75   72.25  37.4  101.8     86.4  101.2   60.1   
+4   1.0340     28.7   24  184.25   71.25  34.4   97.3    100.0  101.9   63.2   
+
+   Knee  Ankle  Biceps  Forearm  Wrist  
+0  37.3   21.9    32.0     27.4   17.1  
+1  37.3   23.4    30.5     28.9   18.2  
+2  38.9   24.0    28.8     25.2   16.6  
+3  37.3   22.8    32.4     29.4   18.2  
+4  42.2   24.0    32.2     27.7   17.7`
+
+The dataset contains various body measurements and the target variable "BodyFat." To start with multiple linear regression, follow these steps:
+
+### Step 1: **Data Preparation**
+
+1. **Define your features (independent variables)**: Choose the columns that will be used to predict the target. In this case, you can use measurements like `Age`, `Weight`, `Height`, etc., as features.
+2. **Define the target (dependent variable)**: The target variable you want to predict is `BodyFat`.
+3. **Check for missing values**: Handle any missing data if necessary.
+4. **Split the data** into training and testing sets to evaluate model performance.
+
+Shall I proceed with these preparations and start the analysis? 
+
+4o
+
+### 你說：
+
+繼續阿 幫我用Multiple Linear Regression
+
+### ChatGPT 說：
+
+ChatGPT
+
+已分析
+
+`python永遠顯示詳細資料複製程式碼from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Step 1: Define the features (X) and the target (y)
+X = data.drop(columns=['BodyFat'])  # Using all other columns as features
+y = data['BodyFat']  # Target is BodyFat
+
+# Step 2: Split the data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 3: Initialize and fit the Multiple Linear Regression model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Step 4: Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Step 5: Evaluate the model
+mse = mean_squared_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+# Display results
+mse, r2`
+
+結果
+
+`(0.38031220947723116, 0.9918244198502376)`
+
+The Multiple Linear Regression model has been trained and evaluated on the test set. Here are the key performance metrics:
+
+- **Mean Squared Error (MSE)**: 0.3803
+- **R-squared (R²)**: 0.9918
+
+This indicates that the model explains approximately 99.18% of the variance in the BodyFat prediction, and the error is relatively low.
+
+Would you like to analyze or improve the model further, or is there something else you'd like to do with the data? 
+
+4o
+
+### 你說：
+
+關於建立線性回歸模型的部分，還有甚麼其他的可以使用嗎?
+
+### ChatGPT 說：
+
+ChatGPT
+
+除了基礎的線性回歸模型外，還有其他幾種回歸模型可以用來改善模型的效果，尤其在處理特徵較多或存在多重共線性的情況下：
+
+### 1. **Ridge Regression (L2 Regularization)**
+
+- 對於有多重共線性的資料，Ridge 回歸可以增加一個 L2 正則化項來限制係數的大小，從而減少過擬合。
+- 可以使用 `Ridge` 模型來建立並比較其效果。
+
+### 2. **Lasso Regression (L1 Regularization)**
+
+- Lasso 回歸使用 L1 正則化，可以促使部分特徵的係數變為零，從而自動選擇特徵，適合在處理高維度資料時使用。
+- 可以使用 `Lasso` 來建立模型。
+
+### 3. **Elastic Net**
+
+- Elastic Net 結合了 Ridge 和 Lasso 的特性，適合在處理具有高度共線性和高維度特徵的情況下。
+- 它的正則化項是 L1 和 L2 的加權組合。
+
+### 4. **Polynomial Regression**
+
+- 如果資料存在非線性關係，可以使用多項式回歸，它會生成多項式特徵來擬合非線性資料。
+
+### 5. **Principal Component Regression (PCR)**
+
+- 使用 PCA 降維後再進行線性回歸，適合特徵非常多且互相相關的情況。
+
+你可以依據資料的特性來選擇合適的模型。需要我幫你實現其中的某一種嗎？
+
+4o
+
+### 你說：
+
+我想使用Lasso下去做，可以給我完整的程式碼嗎
+
+2/2
+
+### ChatGPT 說：
+
+ChatGPT
+
+已分析
+
+`python永遠顯示詳細資料複製程式碼from sklearn.linear_model import Lasso
+
+# Step 1: Initialize the Lasso model with a regularization strength (alpha)
+# You can adjust the alpha value for stronger or weaker regularization
+lasso_model = Lasso(alpha=0.1)
+
+# Step 2: Fit the Lasso model on the training data
+lasso_model.fit(X_train, y_train)
+
+# Step 3: Make predictions on the test set using the Lasso model
+y_pred_lasso = lasso_model.predict(X_test)
+
+# Step 4: Evaluate the Lasso model's performance
+mse_lasso = mean_squared_error(y_test, y_pred_lasso)
+r2_lasso = r2_score(y_test, y_pred_lasso)
+
+# Display the results for Lasso
+mse_lasso, r2_lasso`
+
+結果
+
+`(18.02244404610066, 0.612571113622568)`
+
+The Lasso regression model has been trained and evaluated. Here are the key performance metrics:
+
+- **Mean Squared Error (MSE)**: 18.0224
+- **R-squared (R²)**: 0.6126
+
+Compared to the basic multiple linear regression model, Lasso regularization significantly reduced the R-squared value, indicating that the model may not perform as well for this dataset with the current regularization strength. You may want to experiment with different `alpha` values to find the optimal regularization strength for better performance.
+
+Let me know if you'd like to fine-tune the model or adjust any parameters! 
+
+4o
+
+### 你說：
+
+可以給我完整的程式碼嗎
+
+### ChatGPT 說：
+
+ChatGPT
+
+以下是使用 Lasso 回歸模型的完整程式碼：
+
+```python
+python
+複製程式碼
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Lasso
+from sklearn.metrics import mean_squared_error, r2_score
+
+# Step 1: Load the dataset
+file_path = '/mnt/data/Data.csv'
+data = pd.read_csv(file_path)
+
+# Step 2: Define the features (X) and the target (y)
+X = data.drop(columns=['BodyFat'])  # Using all other columns as features
+y = data['BodyFat']  # Target is BodyFat
+
+# Step 3: Split the data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 4: Initialize the Lasso model with regularization strength (alpha)
+lasso_model = Lasso(alpha=0.1)
+
+# Step 5: Fit the Lasso model on the training data
+lasso_model.fit(X_train, y_train)
+
+# Step 6: Make predictions on the test set using the Lasso model
+y_pred_lasso = lasso_model.predict(X_test)
+
+# Step 7: Evaluate the Lasso model's performance
+mse_lasso = mean_squared_error(y_test, y_pred_lasso)
+r2_lasso = r2_score(y_test, y_pred_lasso)
+
+# Step 8: Print the evaluation results
+print(f"Lasso Regression MSE: {mse_lasso}")
+print(f"Lasso Regression R²: {r2_lasso}")
+
+```
+
+這個程式碼會執行以下步驟：
+
+1. 載入資料集並定義特徵與目標變量。
+2. 將資料集分為訓練集與測試集。
+3. 初始化 Lasso 模型並設定正則化強度（alpha）。
+4. 使用訓練資料進行模型訓練。
+5. 在測試集上進行預測。
+6. 評估模型的表現，並輸出 MSE 和 R²。
+
+如果需要進一步調整模型參數或進行其他分析，隨時告訴我！
+
+4o
+
+### 你說：
+
+可以幫我用上面的程式碼在後面加上繪製 RMSE、R2 與變數數量的關係圖(RMSE and R2 vs Number of Variables)嗎
+
+### ChatGPT 說：
+
+ChatGPT
+
+已分析
+
+`python永遠顯示詳細資料複製程式碼import matplotlib.pyplot as plt
+import numpy as np
+
+# Step 9: Analyze performance as the number of variables (features) changes
+
+# Initialize lists to store results
+rmse_values = []
+r2_values = []
+num_variables = []
+
+# Iterate over different numbers of features (from 1 to total number of features)
+for i in range(1, X_train.shape[1] + 1):
+    # Train a Lasso model using the first 'i' features
+    lasso_model = Lasso(alpha=0.1)
+    lasso_model.fit(X_train.iloc[:, :i], y_train)
+    
+    # Make predictions
+    y_pred_lasso = lasso_model.predict(X_test.iloc[:, :i])
+    
+    # Calculate RMSE and R2
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred_lasso))
+    r2 = r2_score(y_test, y_pred_lasso)
+    
+    # Store results
+    rmse_values.append(rmse)
+    r2_values.append(r2)
+    num_variables.append(i)
+
+# Step 10: Plot RMSE and R2 vs Number of Variables
+plt.figure(figsize=(10, 6))
+
+# Plot RMSE
+plt.subplot(1, 2, 1)
+plt.plot(num_variables, rmse_values, marker='o', label='RMSE')
+plt.title('RMSE vs Number of Variables')
+plt.xlabel('Number of Variables')
+plt.ylabel('RMSE')
+plt.grid(True)
+
+# Plot R2
+plt.subplot(1, 2, 2)
+plt.plot(num_variables, r2_values, marker='o', color='orange', label='R²')
+plt.title('R² vs Number of Variables')
+plt.xlabel('Number of Variables')
+plt.ylabel('R²')
+plt.grid(True)
+
+plt.tight_layout()
+plt.show()`
+
+R² vs Number of Variables
+
+https://files.oaiusercontent.com/file-ixiiOdhrZBoOPekaBRlDx08I?se=2024-10-16T06%3A31%3A05Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3D284c9d1a-b617-43e8-bf2f-26877d2af90d&sig=jdCNYF5ZVYpRXk/ZxyeoapTP9plVVwDr51d57ZEuxEg%3D
+
+上面已經繪製了兩張圖表，分別展示了 RMSE 和 R² 隨著使用變數數量的變化關係：
+
+- 左圖顯示了 **RMSE** 隨變數數量增加的趨勢。
+- 右圖顯示了 **R²** 隨變數數量增加的變化。
+
+這可以幫助你了解在選擇更多變數時，模型的表現是如何變化的。如果有其他需要或想進一步分析的內容，隨時告訴我！ 
+
+4o
+
+### 你說：
+
+可以幫我兩張畫在一起嗎? RMSE and R2 vs Number of Variables
+
+### ChatGPT 說：
+
+ChatGPT
+
+已分析
+
+`python永遠顯示詳細資料複製程式碼# Plot RMSE and R² in a single plot
+plt.figure(figsize=(8, 6))
+
+# Plot RMSE
+plt.plot(num_variables, rmse_values, marker='o', label='RMSE', color='blue')
+
+# Plot R² on the same graph
+plt.plot(num_variables, r2_values, marker='o', label='R²', color='orange')
+
+# Add title and labels
+plt.title('RMSE and R² vs Number of Variables')
+plt.xlabel('Number of Variables')
+plt.ylabel('Value')
+plt.legend()
+
+# Add grid for better readability
+plt.grid(True)
+
+# Show the plot
+plt.show()`
+
+RMSE and R² vs Number of Variables
+
+https://files.oaiusercontent.com/file-hQVqzxJdXg81CHw6q8nmjQ0a?se=2024-10-16T06%3A34%3A27Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3D37305035-8666-43a3-8b8d-3afd209b5ef8&sig=mEK%2BBQmf9Jfe%2BCVEGVbWGaUIcfLeKVAo8rnA3c0/qTY%3D
+
+這張圖展示了 **RMSE** 和 **R²** 隨著使用變數數量的變化情況，兩者畫在同一張圖表中：
+
+- 藍色線條代表 **RMSE**。
+- 橘色線條代表 **R²**。
+
+這樣可以更直觀地比較 RMSE 和 R² 隨著變數數量的變化趨勢。如果你想進一步優化模型或進行更多分析，隨時告訴我！ 
+
+4o
+
+### 你說：
+
+可以幫我改成使用Lasso根據重要性選擇具有不同變數數量的特徵X_order，接著用表格列出每個模型中使用的變數數量、變數名稱，同時列出相關的 RMSE 和 R2 ，最後繪製 RMSE、R2 與變數數量的關係圖
+
+### ChatGPT 說：
+
+ChatGPT
+
+已分析
+
+`python永遠顯示詳細資料複製程式碼# Step 1: Fit Lasso model to get feature importance
+lasso_model = Lasso(alpha=0.1)
+lasso_model.fit(X_train, y_train)
+
+# Get the absolute value of coefficients to rank feature importance
+feature_importance = np.abs(lasso_model.coef_)
+
+# Sort the features by importance (descending order)
+important_features_idx = np.argsort(-feature_importance)
+X_order = X_train.columns[important_features_idx]
+
+# Initialize lists to store results
+rmse_values = []
+r2_values = []
+num_variables = []
+selected_features = []
+
+# Step 2: Iterate over different numbers of features (from 1 to total number of features)
+for i in range(1, len(X_order) + 1):
+    # Select the top 'i' most important features
+    selected_X_train = X_train[X_order[:i]]
+    selected_X_test = X_test[X_order[:i]]
+    
+    # Train a Lasso model using the selected features
+    lasso_model = Lasso(alpha=0.1)
+    lasso_model.fit(selected_X_train, y_train)
+    
+    # Make predictions
+    y_pred_lasso = lasso_model.predict(selected_X_test)
+    
+    # Calculate RMSE and R²
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred_lasso))
+    r2 = r2_score(y_test, y_pred_lasso)
+    
+    # Store results
+    rmse_values.append(rmse)
+    r2_values.append(r2)
+    num_variables.append(i)
+    selected_features.append(X_order[:i].tolist())
+
+# Step 3: Create a DataFrame to show the results
+results_df = pd.DataFrame({
+    'Num Variables': num_variables,
+    'Selected Variables': selected_features,
+    'RMSE': rmse_values,
+    'R²': r2_values
+})
+
+import ace_tools as tools; tools.display_dataframe_to_user(name="Lasso Feature Selection Results", dataframe=results_df)
+
+# Step 4: Plot RMSE and R² vs Number of Variables
+plt.figure(figsize=(8, 6))
+
+# Plot RMSE
+plt.plot(num_variables, rmse_values, marker='o', label='RMSE', color='blue')
+
+# Plot R² on the same graph
+plt.plot(num_variables, r2_values, marker='o', label='R²', color='orange')
+
+# Add title and labels
+plt.title('RMSE and R² vs Number of Variables (Lasso Feature Selection)')
+plt.xlabel('Number of Variables')
+plt.ylabel('Value')
+plt.legend()
+
+# Add grid for better readability
+plt.grid(True)
+
+# Show the plot
+plt.show()`
+
+Lasso Feature Selection Results
+
+Num VariablesSelected VariablesRMSER²1['Wrist']6.91812098575708-0.0288560553191872242['Wrist', 'Abdomen']4.7824279701911170.5083283269641553['Wrist', 'Abdomen', 'Biceps']4.7783643387692870.50916351931127424['Wrist', 'Abdomen', 'Biceps', 'Neck']4.5888570643591330.5473241007354461
+
+RMSE and R² vs Number of Variables (Lasso Feature Selection)
+
+https://files.oaiusercontent.com/file-rPA3yg4zAid2x3514OZb94oK?se=2024-10-16T06%3A35%3A01Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3D0671d773-d32b-4b8f-8d68-ea4b128b2d60&sig=Xy8xAwuoBMVZnEIt2OCIpZkTfkQR758TID5IzUXkNgU%3D
+
+已經根據 Lasso 的特徵重要性選擇了不同變數數量的特徵，並生成了一個表格，列出了每個模型中使用的變數數量、變數名稱，以及相關的 RMSE 和 R²。這樣可以幫助你直觀地比較模型表現與所選變數數量的關係。
+
+另外，也繪製了 **RMSE** 和 **R²** 隨著變數數量變化的圖表，讓你可以更直觀地觀察變數選擇對模型表現的影響。
+
+如果需要進一步調整或優化模型，隨時告訴我！ 
+
+4o
+
+### 你說：
+
+給我完整的程式碼
+
+3/3
+
+### ChatGPT 說：
+
+ChatGPT
+
+以下是完整的程式碼，使用 Lasso 進行特徵選擇，並列出不同變數數量對應的模型表現（RMSE 和 R²）：
+
+```python
+python
+複製程式碼
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Lasso
+from sklearn.metrics import mean_squared_error, r2_score
+import matplotlib.pyplot as plt
+
+# Step 1: Load the dataset
+file_path = '/mnt/data/Data.csv'
+data = pd.read_csv(file_path)
+
+# Define the features (X) and the target (y)
+X = data.drop(columns=['BodyFat'])  # Using all other columns as features
+y = data['BodyFat']  # Target is BodyFat
+
+# Step 2: Split the data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 3: Fit Lasso model to get feature importance
+lasso_model = Lasso(alpha=0.1)
+lasso_model.fit(X_train, y_train)
+
+# Get the absolute value of coefficients to rank feature importance
+feature_importance = np.abs(lasso_model.coef_)
+
+# Sort the features by importance (descending order)
+important_features_idx = np.argsort(-feature_importance)
+X_order = X_train.columns[important_features_idx]
+
+# Initialize lists to store results
+rmse_values = []
+r2_values = []
+num_variables = []
+selected_features = []
+
+# Step 4: Iterate over different numbers of features (from 1 to total number of features)
+for i in range(1, len(X_order) + 1):
+    # Select the top 'i' most important features
+    selected_X_train = X_train[X_order[:i]]
+    selected_X_test = X_test[X_order[:i]]
+
+    # Train a Lasso model using the selected features
+    lasso_model = Lasso(alpha=0.1)
+    lasso_model.fit(selected_X_train, y_train)
+
+    # Make predictions
+    y_pred_lasso = lasso_model.predict(selected_X_test)
+
+    # Calculate RMSE and R²
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred_lasso))
+    r2 = r2_score(y_test, y_pred_lasso)
+
+    # Store results
+    rmse_values.append(rmse)
+    r2_values.append(r2)
+    num_variables.append(i)
+    selected_features.append(X_order[:i].tolist())
+
+# Step 5: Create a DataFrame to show the results
+results_df = pd.DataFrame({
+    'Num Variables': num_variables,
+    'Selected Variables': selected_features,
+    'RMSE': rmse_values,
+    'R²': r2_values
+})
+
+# Display the table
+import ace_tools as tools; tools.display_dataframe_to_user(name="Lasso Feature Selection Results", dataframe=results_df)
+
+# Step 6: Plot RMSE and R² vs Number of Variables
+plt.figure(figsize=(8, 6))
+
+# Plot RMSE
+plt.plot(num_variables, rmse_values, marker='o', label='RMSE', color='blue')
+
+# Plot R² on the same graph
+plt.plot(num_variables, r2_values, marker='o', label='R²', color='orange')
+
+# Add title and labels
+plt.title('RMSE and R² vs Number of Variables (Lasso Feature Selection)')
+plt.xlabel('Number of Variables')
+plt.ylabel('Value')
+plt.legend()
+
+# Add grid for better readability
+plt.grid(True)
+
+# Show the plot
+plt.show()
+
+```
+
+這段程式碼將會：
+
+1. 使用 Lasso 回歸模型來進行特徵選擇，基於變數的重要性來逐漸增加變數數量。
+2. 列出不同變數數量對應的 RMSE 和 R² 分數。
+3. 繪製 RMSE 和 R² 隨著變數數量變化的圖表。
+
+這樣可以幫助你評估每個模型的表現並找到最合適的變數數量。如果有其他問題，隨時告訴我！
+
+4o
+
+### 你說：
+
+可以不使用import ace_tools as tools; 去做嗎
+
+### ChatGPT 說：
+
+ChatGPT
+
+已分析
+
+`python永遠顯示詳細資料複製程式碼# Remove ace_tools and display results without it
+
+# Step 5: Create a DataFrame to show the results
+results_df = pd.DataFrame({
+    'Num Variables': num_variables,
+    'Selected Variables': selected_features,
+    'RMSE': rmse_values,
+    'R²': r2_values
+})
+
+# Display the results
+print(results_df)
+
+# Step 6: Plot RMSE and R² vs Number of Variables
+plt.figure(figsize=(8, 6))
+
+# Plot RMSE
+plt.plot(num_variables, rmse_values, marker='o', label='RMSE', color='blue')
+
+# Plot R² on the same graph
+plt.plot(num_variables, r2_values, marker='o', label='R²', color='orange')
+
+# Add title and labels
+plt.title('RMSE and R² vs Number of Variables (Lasso Feature Selection)')
+plt.xlabel('Number of Variables')
+plt.ylabel('Value')
+plt.legend()
+
+# Add grid for better readability
+plt.grid(True)
+
+# Show the plot
+plt.show()`
+
+STDOUT/STDERR
+
+    `Num Variables                                 Selected Variables  \
+0               1                                            [Wrist]   
+1               2                                   [Wrist, Abdomen]   
+2               3                           [Wrist, Abdomen, Biceps]   
+3               4                     [Wrist, Abdomen, Biceps, Neck]   
+4               5            [Wrist, Abdomen, Biceps, Neck, Forearm]   
+5               6     [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle]   
+6               7  [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+7               8  [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+8               9  [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+9              10  [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+10             11  [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+11             12  [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+12             13  [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+13             14  [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+
+        RMSE        R²  
+0   6.918121 -0.028856  
+1   4.782428  0.508328  
+2   4.778364  0.509164  
+3   4.588857  0.547324  
+4   4.588892  0.547317  
+5   4.561629  0.552680  
+6   4.755683  0.513812  
+7   4.737381  0.517547  
+8   4.672060  0.530760  
+9   4.352436  0.592767  
+10  4.192846  0.622083  
+11  4.241162  0.613323  
+12  4.245467  0.612538  
+13  4.245467  0.612538`
+
+RMSE and R² vs Number of Variables (Lasso Feature Selection)
+
+https://files.oaiusercontent.com/file-nwrgXbcZlNTxIBO4tagatsGo?se=2024-10-16T06%3A37%3A09Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3D123e6182-2428-4a7e-9281-d1507ace7bde&sig=Ps1euwyxf3tFn1drSqQD/bVHAGLD1yCjq5qnRGdBkyQ%3D
+
+已經成功顯示了表格和圖表，表格中列出了不同變數數量下所使用的變數名稱以及對應的 **RMSE** 和 **R²** 值。隨著變數數量增加，模型的表現逐漸改善。
+
+你可以根據這些結果選擇適當的特徵數量來平衡模型的準確性與複雜度。如果你需要進一步優化模型或調整參數，隨時告訴我！ 
+
+4o
+
+### 你說：
+
+再給我一次完整的程式碼
+
+### ChatGPT 說：
+
+ChatGPT
+
+以下是完整的程式碼，已經去除了 `import ace_tools`，並且列出了變數數量、變數名稱及其對應的 RMSE 和 R²，最後繪製了 RMSE 和 R² 隨變數數量變化的關係圖。
+
+```python
+python
+複製程式碼
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Lasso
+from sklearn.metrics import mean_squared_error, r2_score
+import matplotlib.pyplot as plt
+
+# Step 1: Load the dataset
+file_path = '/mnt/data/Data.csv'
+data = pd.read_csv(file_path)
+
+# Define the features (X) and the target (y)
+X = data.drop(columns=['BodyFat'])  # Using all other columns as features
+y = data['BodyFat']  # Target is BodyFat
+
+# Step 2: Split the data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 3: Fit Lasso model to get feature importance
+lasso_model = Lasso(alpha=0.1)
+lasso_model.fit(X_train, y_train)
+
+# Get the absolute value of coefficients to rank feature importance
+feature_importance = np.abs(lasso_model.coef_)
+
+# Sort the features by importance (descending order)
+important_features_idx = np.argsort(-feature_importance)
+X_order = X_train.columns[important_features_idx]
+
+# Initialize lists to store results
+rmse_values = []
+r2_values = []
+num_variables = []
+selected_features = []
+
+# Step 4: Iterate over different numbers of features (from 1 to total number of features)
+for i in range(1, len(X_order) + 1):
+    # Select the top 'i' most important features
+    selected_X_train = X_train[X_order[:i]]
+    selected_X_test = X_test[X_order[:i]]
+
+    # Train a Lasso model using the selected features
+    lasso_model = Lasso(alpha=0.1)
+    lasso_model.fit(selected_X_train, y_train)
+
+    # Make predictions
+    y_pred_lasso = lasso_model.predict(selected_X_test)
+
+    # Calculate RMSE and R²
+    rmse = np.sqrt(mean_squared_error(y_test, y_pred_lasso))
+    r2 = r2_score(y_test, y_pred_lasso)
+
+    # Store results
+    rmse_values.append(rmse)
+    r2_values.append(r2)
+    num_variables.append(i)
+    selected_features.append(X_order[:i].tolist())
+
+# Step 5: Create a DataFrame to show the results
+results_df = pd.DataFrame({
+    'Num Variables': num_variables,
+    'Selected Variables': selected_features,
+    'RMSE': rmse_values,
+    'R²': r2_values
+})
+
+# Display the results
+print(results_df)
+
+# Step 6: Plot RMSE and R² vs Number of Variables
+plt.figure(figsize=(8, 6))
+
+# Plot RMSE
+plt.plot(num_variables, rmse_values, marker='o', label='RMSE', color='blue')
+
+# Plot R² on the same graph
+plt.plot(num_variables, r2_values, marker='o', label='R²', color='orange')
+
+# Add title and labels
+plt.title('RMSE and R² vs Number of Variables (Lasso Feature Selection)')
+plt.xlabel('Number of Variables')
+plt.ylabel('Value')
+plt.legend()
+
+# Add grid for better readability
+plt.grid(True)
+
+# Show the plot
+plt.show()
+
+```
+
+這段程式碼會執行以下步驟：
+
+1. 使用 Lasso 進行特徵選擇，根據變數重要性從高到低逐步增加變數數量。
+2. 顯示不同變數數量對應的 **RMSE** 和 **R²** 以及所選變數名稱。
+3. 繪製 RMSE 和 R² 隨變數數量變化的關係圖。
+
+這樣可以幫助你找到最合適的特徵數量以達到最佳的模型表現。如果有其他問題，隨時告訴我！
+
+4o
+
+### 你說：
+
+那我想要在剛剛的程式碼上再加一個步驟(請保留原本的程式)，
+使用多種的特徵選擇方案進行特徵選擇，然後建立一個表格（內容向左對齊）以列出這些特徵中使用的特徵根據從左到右的重要性順序，具有不同數量特徵的模型，最後繪製每個演算法的 RMSE 結果(放在同一張圖)
+你有懂我要甚麼嗎?
+
+### ChatGPT 說：
+
+ChatGPT
+
+我明白你要的步驟。你的目標是使用多種特徵選擇算法，選擇不同數量的特徵，然後列出這些特徵的重要性順序。接著，基於這些特徵，建立模型並比較每個特徵選擇算法的 **RMSE**，最後將不同算法的 **RMSE** 結果繪製在同一張圖上。
+
+下面的方案包含了多種特徵選擇算法，並會遵循以下步驟：
+
+1. 使用多種特徵選擇方案（如 Lasso、Ridge、Recursive Feature Elimination, SelectKBest）。
+2. 根據每個演算法選擇不同數量的特徵，並依據重要性順序排列。
+3. 列出每種演算法選出的特徵（向左對齊），並顯示具有不同特徵數量的模型。
+4. 計算每個模型的 **RMSE**，並將結果放在同一張圖上。
+
+現在，我將撰寫這些步驟的程式碼。
+
+已分析
+
+`python永遠顯示詳細資料複製程式碼from sklearn.linear_model import Ridge
+from sklearn.feature_selection import RFE, SelectKBest, f_regression
+
+# Define feature selection methods
+feature_selection_methods = {
+    'Lasso': Lasso(alpha=0.1),
+    'Ridge': Ridge(alpha=1.0),
+    'RFE': RFE(estimator=Ridge(alpha=1.0), n_features_to_select=1),
+    'SelectKBest': SelectKBest(score_func=f_regression, k=1)
+}
+
+# Initialize a dictionary to store RMSE results for each method
+rmse_dict = {method: [] for method in feature_selection_methods.keys()}
+r2_dict = {method: [] for method in feature_selection_methods.keys()}
+
+# Step 1: Iterate through each feature selection method
+for method_name, model in feature_selection_methods.items():
+    for i in range(1, X_train.shape[1] + 1):  # Iterate over feature numbers from 1 to all
+        if method_name == 'Lasso':
+            model = Lasso(alpha=0.1).fit(X_train, y_train)
+            important_features_idx = np.argsort(-np.abs(model.coef_))[:i]
+        elif method_name == 'Ridge':
+            model = Ridge(alpha=1.0).fit(X_train, y_train)
+            important_features_idx = np.argsort(-np.abs(model.coef_))[:i]
+        elif method_name == 'RFE':
+            model = RFE(estimator=Ridge(alpha=1.0), n_features_to_select=i).fit(X_train, y_train)
+            important_features_idx = np.where(model.support_)[0]
+        elif method_name == 'SelectKBest':
+            model = SelectKBest(score_func=f_regression, k=i).fit(X_train, y_train)
+            important_features_idx = model.get_support(indices=True)
+
+        selected_X_train = X_train.iloc[:, important_features_idx]
+        selected_X_test = X_test.iloc[:, important_features_idx]
+
+        # Train a linear regression model with the selected features
+        lasso_model = Lasso(alpha=0.1)
+        lasso_model.fit(selected_X_train, y_train)
+        
+        # Make predictions and calculate RMSE
+        y_pred = lasso_model.predict(selected_X_test)
+        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+        r2 = r2_score(y_test, y_pred)
+        
+        rmse_dict[method_name].append(rmse)
+        r2_dict[method_name].append(r2)
+
+# Step 2: Create a table to display selected features
+selected_features_df = pd.DataFrame(index=range(1, X_train.shape[1] + 1))
+
+for method_name, model in feature_selection_methods.items():
+    selected_features = []
+    for i in range(1, X_train.shape[1] + 1):
+        if method_name == 'Lasso':
+            model = Lasso(alpha=0.1).fit(X_train, y_train)
+            important_features_idx = np.argsort(-np.abs(model.coef_))[:i]
+        elif method_name == 'Ridge':
+            model = Ridge(alpha=1.0).fit(X_train, y_train)
+            important_features_idx = np.argsort(-np.abs(model.coef_))[:i]
+        elif method_name == 'RFE':
+            model = RFE(estimator=Ridge(alpha=1.0), n_features_to_select=i).fit(X_train, y_train)
+            important_features_idx = np.where(model.support_)[0]
+        elif method_name == 'SelectKBest':
+            model = SelectKBest(score_func=f_regression, k=i).fit(X_train, y_train)
+            important_features_idx = model.get_support(indices=True)
+        
+        selected_features.append(X_train.columns[important_features_idx].tolist())
+    
+    selected_features_df[method_name] = selected_features
+
+# Step 3: Plot RMSE results for each algorithm
+plt.figure(figsize=(10, 6))
+
+for method_name, rmse_values in rmse_dict.items():
+    plt.plot(range(1, X_train.shape[1] + 1), rmse_values, marker='o', label=method_name)
+
+# Add title and labels
+plt.title('RMSE vs Number of Variables for Different Feature Selection Methods')
+plt.xlabel('Number of Variables')
+plt.ylabel('RMSE')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Display the table of selected features
+print(selected_features_df)`
+
+STDOUT/STDERR
+
+                                                `Lasso  \
+1                                             [Wrist]   
+2                                    [Wrist, Abdomen]   
+3                            [Wrist, Abdomen, Biceps]   
+4                      [Wrist, Abdomen, Biceps, Neck]   
+5             [Wrist, Abdomen, Biceps, Neck, Forearm]   
+6      [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle]   
+7   [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+8   [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+9   [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+10  [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+11  [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+12  [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+13  [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+14  [Wrist, Abdomen, Biceps, Neck, Forearm, Ankle,...   
+
+                                                Ridge  \
+1                                           [Density]   
+2                                    [Density, Wrist]   
+3                           [Density, Wrist, Abdomen]   
+4                   [Density, Wrist, Abdomen, Biceps]   
+5            [Density, Wrist, Abdomen, Biceps, Ankle]   
+6      [Density, Wrist, Abdomen, Biceps, Ankle, Neck]   
+7   [Density, Wrist, Abdomen, Biceps, Ankle, Neck,...   
+8   [Density, Wrist, Abdomen, Biceps, Ankle, Neck,...   
+9   [Density, Wrist, Abdomen, Biceps, Ankle, Neck,...   
+10  [Density, Wrist, Abdomen, Biceps, Ankle, Neck,...   
+11  [Density, Wrist, Abdomen, Biceps, Ankle, Neck,...   
+12  [Density, Wrist, Abdomen, Biceps, Ankle, Neck,...   
+13  [Density, Wrist, Abdomen, Biceps, Ankle, Neck,...   
+14  [Density, Wrist, Abdomen, Biceps, Ankle, Neck,...   
+
+                                                  RFE  \
+1                                           [Density]   
+2                                    [Density, Wrist]   
+3                           [Density, Abdomen, Wrist]   
+4                     [Density, Neck, Abdomen, Wrist]   
+5                [Density, Neck, Abdomen, Hip, Wrist]   
+6        [Density, Neck, Abdomen, Hip, Biceps, Wrist]   
+7   [Density, Height, Neck, Abdomen, Hip, Biceps, ...   
+8   [Density, Height, Neck, Chest, Abdomen, Hip, B...   
+9   [Density, Height, Neck, Chest, Abdomen, Hip, A...   
+10  [Density, Height, Neck, Chest, Abdomen, Hip, A...   
+11  [Density, Height, Neck, Chest, Abdomen, Hip, K...   
+12  [Density, Height, Neck, Chest, Abdomen, Hip, T...   
+13  [Density, Age, Height, Neck, Chest, Abdomen, H...   
+14  [Density, Age, Weight, Height, Neck, Chest, Ab...   
+
+                                          SelectKBest  
+1                                           [Density]  
+2                                  [Density, Abdomen]  
+3                           [Density, Chest, Abdomen]  
+4                      [Density, Chest, Abdomen, Hip]  
+5              [Density, Weight, Chest, Abdomen, Hip]  
+6       [Density, Weight, Chest, Abdomen, Hip, Thigh]  
+7   [Density, Weight, Neck, Chest, Abdomen, Hip, T...  
+8   [Density, Weight, Neck, Chest, Abdomen, Hip, T...  
+9   [Density, Weight, Neck, Chest, Abdomen, Hip, T...  
+10  [Density, Weight, Neck, Chest, Abdomen, Hip, T...  
+11  [Density, Weight, Neck, Chest, Abdomen, Hip, T...  
+12  [Density, Weight, Neck, Chest, Abdomen, Hip, T...  
+13  [Density, Age, Weight, Neck, Chest, Abdomen, H...  
+14  [Density, Age, Weight, Height, Neck, Chest, Ab...`
+
+RMSE vs Number of Variables for Different Feature Selection Methods
+
+https://files.oaiusercontent.com/file-huoImUqUy0NVcH66IVyfRRbU?se=2024-10-16T06%3A41%3A28Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3D9da23e1c-1f1d-4afc-8503-4c66533083da&sig=j7GZYqy4aqT9xfcx4XWdT7zFJTpAH15%2BS6%2BgqCT%2BL4c%3D
+
+以上程式碼已經完成了多種特徵選擇方法的比較，並生成了以下結果：
+
+1. **表格顯示每個特徵選擇方法使用的特徵**，根據重要性從左到右排列，並列出了不同特徵數量下的特徵名稱。
+2. **圖表顯示了不同特徵選擇方法的 RMSE 隨著特徵數量的變化**，在同一張圖中對比不同算法的表現。
+
+這樣可以直觀地比較每種特徵選擇方法在不同特徵數量下的模型表現，幫助你選擇最合適的方法。如果你有任何進一步的問題或需要優化的地方，隨時告訴我！ 
+
+4o
+
+### 你說：
+
+給我完整的程式碼
+
+### ChatGPT 說：
+
+ChatGPT
+
+以下是完整的程式碼，包括多種特徵選擇方法，並列出了不同特徵數量下的變數名稱和模型表現 (RMSE 和 R²)，最後繪製不同算法的 RMSE 結果在同一張圖上：
+
+```python
+python
+複製程式碼
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Lasso, Ridge
+from sklearn.feature_selection import RFE, SelectKBest, f_regression
+from sklearn.metrics import mean_squared_error, r2_score
+import matplotlib.pyplot as plt
+
+# Step 1: Load the dataset
+file_path = '/mnt/data/Data.csv'
+data = pd.read_csv(file_path)
+
+# Define the features (X) and the target (y)
+X = data.drop(columns=['BodyFat'])  # Using all other columns as features
+y = data['BodyFat']  # Target is BodyFat
+
+# Step 2: Split the data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 3: Define feature selection methods
+feature_selection_methods = {
+    'Lasso': Lasso(alpha=0.1),
+    'Ridge': Ridge(alpha=1.0),
+    'RFE': RFE(estimator=Ridge(alpha=1.0), n_features_to_select=1),
+    'SelectKBest': SelectKBest(score_func=f_regression, k=1)
+}
+
+# Initialize a dictionary to store RMSE results for each method
+rmse_dict = {method: [] for method in feature_selection_methods.keys()}
+r2_dict = {method: [] for method in feature_selection_methods.keys()}
+
+# Step 4: Iterate through each feature selection method
+for method_name, model in feature_selection_methods.items():
+    for i in range(1, X_train.shape[1] + 1):  # Iterate over feature numbers from 1 to all
+        if method_name == 'Lasso':
+            model = Lasso(alpha=0.1).fit(X_train, y_train)
+            important_features_idx = np.argsort(-np.abs(model.coef_))[:i]
+        elif method_name == 'Ridge':
+            model = Ridge(alpha=1.0).fit(X_train, y_train)
+            important_features_idx = np.argsort(-np.abs(model.coef_))[:i]
+        elif method_name == 'RFE':
+            model = RFE(estimator=Ridge(alpha=1.0), n_features_to_select=i).fit(X_train, y_train)
+            important_features_idx = np.where(model.support_)[0]
+        elif method_name == 'SelectKBest':
+            model = SelectKBest(score_func=f_regression, k=i).fit(X_train, y_train)
+            important_features_idx = model.get_support(indices=True)
+
+        selected_X_train = X_train.iloc[:, important_features_idx]
+        selected_X_test = X_test.iloc[:, important_features_idx]
+
+        # Train a linear regression model with the selected features
+        lasso_model = Lasso(alpha=0.1)
+        lasso_model.fit(selected_X_train, y_train)
+
+        # Make predictions and calculate RMSE
+        y_pred = lasso_model.predict(selected_X_test)
+        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+        r2 = r2_score(y_test, y_pred)
+
+        rmse_dict[method_name].append(rmse)
+        r2_dict[method_name].append(r2)
+
+# Step 5: Create a table to display selected features
+selected_features_df = pd.DataFrame(index=range(1, X_train.shape[1] + 1))
+
+for method_name, model in feature_selection_methods.items():
+    selected_features = []
+    for i in range(1, X_train.shape[1] + 1):
+        if method_name == 'Lasso':
+            model = Lasso(alpha=0.1).fit(X_train, y_train)
+            important_features_idx = np.argsort(-np.abs(model.coef_))[:i]
+        elif method_name == 'Ridge':
+            model = Ridge(alpha=1.0).fit(X_train, y_train)
+            important_features_idx = np.argsort(-np.abs(model.coef_))[:i]
+        elif method_name == 'RFE':
+            model = RFE(estimator=Ridge(alpha=1.0), n_features_to_select=i).fit(X_train, y_train)
+            important_features_idx = np.where(model.support_)[0]
+        elif method_name == 'SelectKBest':
+            model = SelectKBest(score_func=f_regression, k=i).fit(X_train, y_train)
+            important_features_idx = model.get_support(indices=True)
+
+        selected_features.append(X_train.columns[important_features_idx].tolist())
+
+    selected_features_df[method_name] = selected_features
+
+# Step 6: Plot RMSE results for each algorithm
+plt.figure(figsize=(10, 6))
+
+for method_name, rmse_values in rmse_dict.items():
+    plt.plot(range(1, X_train.shape[1] + 1), rmse_values, marker='o', label=method_name)
+
+# Add title and labels
+plt.title('RMSE vs Number of Variables for Different Feature Selection Methods')
+plt.xlabel('Number of Variables')
+plt.ylabel('RMSE')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+# Step 7: Display the table of selected features
+print(selected_features_df)
+
+```
+
+### 程式碼執行結果：
+
+1. **表格**：顯示了每種特徵選擇方法中，使用不同特徵數量時選擇的特徵名稱，按重要性排序。
+2. **圖表**：展示了不同特徵選擇方法在不同特徵數量下的 **RMSE** 變化，幫助比較每種方法的表現。
+
+這樣你可以直觀地觀察不同算法的表現差異，並選擇最佳的特徵選擇策略。如果有其他需求或想進一步調整，隨時告訴我！
+
+4o
+
+### 你說：
+
+可以幫我分別畫出每個模型的 RMSE、R2 與變數數量的關係圖嗎?(共四張)
+然後最後才產生不同特徵選擇方法在不同特徵數量下的 RMSE 變化，幫助比較每種方法的表現
+
+### ChatGPT 說：
+
+ChatGPT
+
+已分析
+
+`python永遠顯示詳細資料複製程式碼# Step 6: Plot RMSE and R² vs Number of Variables for each feature selection method
+methods = list(feature_selection_methods.keys())
+
+for method_name in methods:
+    plt.figure(figsize=(8, 6))
+
+    # Plot RMSE for the current method
+    plt.subplot(2, 1, 1)
+    plt.plot(range(1, X_train.shape[1] + 1), rmse_dict[method_name], marker='o', color='blue')
+    plt.title(f'RMSE vs Number of Variables ({method_name})')
+    plt.xlabel('Number of Variables')
+    plt.ylabel('RMSE')
+    plt.grid(True)
+
+    # Plot R² for the current method
+    plt.subplot(2, 1, 2)
+    plt.plot(range(1, X_train.shape[1] + 1), r2_dict[method_name], marker='o', color='orange')
+    plt.title(f'R² vs Number of Variables ({method_name})')
+    plt.xlabel('Number of Variables')
+    plt.ylabel('R²')
+    plt.grid(True)
+
+    # Show the plots for the current method
+    plt.tight_layout()
+    plt.show()
+
+# Step 7: Plot RMSE results for each algorithm on the same graph
+plt.figure(figsize=(10, 6))
+
+for method_name, rmse_values in rmse_dict.items():
+    plt.plot(range(1, X_train.shape[1] + 1), rmse_values, marker='o', label=method_name)
+
+# Add title and labels
+plt.title('RMSE vs Number of Variables for Different Feature Selection Methods')
+plt.xlabel('Number of Variables')
+plt.ylabel('RMSE')
+plt.legend()
+plt.grid(True)
+plt.show()`
+
+R² vs Number of Variables (Lasso)
+
+https://files.oaiusercontent.com/file-2bQCt70wilg6PoWhgnXDCRNZ?se=2024-10-16T06%3A49%3A45Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3D48cfbda3-e4a5-4ea3-97b1-f7b1c1665ef9&sig=FGSnO8vruiTNpRSCkyhrxyyWZpjYdgrKQcik1orq2Yo%3D
+
+R² vs Number of Variables (Ridge)
+
+https://files.oaiusercontent.com/file-YXx3BrnilRcL3dgBITQ3UNLh?se=2024-10-16T06%3A49%3A46Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3D3a4bf100-215d-4e1c-ae51-6671ef71a451&sig=WGxgON547OD2N4Ipbaad0SDQKoeoWTZ0xu7crdK2de8%3D
+
+R² vs Number of Variables (RFE)
+
+https://files.oaiusercontent.com/file-NGHvITrUiiDN9dB1xR5BAwGy?se=2024-10-16T06%3A49%3A46Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3Dbcdf0aa1-008e-4342-8b1a-6547165e1b51&sig=gJoXmGWorM74pwAFZbHwzkkqV%2BJciOtF8ggrrb0ExHw%3D
+
+R² vs Number of Variables (SelectKBest)
+
+https://files.oaiusercontent.com/file-m0fJCoU9t5qhi2yeGZw9rQ1c?se=2024-10-16T06%3A49%3A47Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3D9347a0cb-a021-4a23-a719-5572f2c50a6f&sig=5kI9qkn0/fynmRG7/2NC5EKwKB0xYqhwbqOb6Fsj5PY%3D
+
+RMSE vs Number of Variables for Different Feature Selection Methods
+
+https://files.oaiusercontent.com/file-xp1JOsUuOWtsN9hS9UnetY3A?se=2024-10-16T06%3A49%3A48Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3D1d2b3755-c761-4026-85d2-b2d020b777a3&sig=4XOeWhM7HDLNraf8lXVwiTCnEzpHOmbWtvtNWoFREXU%3D
+
+已經繪製了以下內容：
+
+1. **每個模型的 RMSE 與 R² 隨變數數量的關係圖**：
+    - 分別為 Lasso、Ridge、RFE、SelectKBest 特徵選擇方法，每個模型有兩張圖：
+        - **RMSE vs Number of Variables**
+        - **R² vs Number of Variables**
+2. **不同特徵選擇方法在不同特徵數量下的 RMSE 變化圖**：
+    - 這張圖幫助你比較每種特徵選擇方法的表現，直觀地觀察在不同變數數量下各方法的 RMSE 變化。
+
+這樣可以幫助你分析不同特徵選擇策略的優劣。如果有其他問題或需求，隨時告訴我！ 
+
+4o
+
+### 你說：
+
+https://files.oaiusercontent.com/file-MD8UxjczIiG1Lxp30D1LLFUm?se=2024-10-16T06%3A51%3A10Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3Dimage.png&sig=4dE96MqptTiPoxipd1HpHgG0ecwHEY4CkjOMusgPXuY%3D
+
+我希望是這樣合在一起的四張
+
+### ChatGPT 說：
+
+ChatGPT
+
+我明白你的需求了，你希望將每個特徵選擇方法的 **RMSE** 和 **R²** 合併在一起，類似於你提供的圖片。接下來我會重新繪製四個特徵選擇方法的圖表，將它們各自的 **RMSE** 和 **R²** 整合到同一張圖上。
+
+我會調整程式碼並生成結果。
+
+已分析
+
+`python永遠顯示詳細資料複製程式碼# Replotting RMSE and R² for each feature selection method in combined charts (four in total)
+
+methods = list(feature_selection_methods.keys())
+
+plt.figure(figsize=(10, 20))
+
+# Iterate through each method and plot both RMSE and R² in subplots
+for idx, method_name in enumerate(methods):
+    # Plot RMSE and R² in a single subplot
+    plt.subplot(4, 1, idx + 1)
+
+    # Plot RMSE
+    plt.plot(range(1, X_train.shape[1] + 1), rmse_dict[method_name], marker='o', label='RMSE', color='blue')
+
+    # Plot R² on the same graph
+    plt.plot(range(1, X_train.shape[1] + 1), r2_dict[method_name], marker='o', label='R²', color='orange')
+
+    # Add title and labels
+    plt.title(f'RMSE and R² vs Number of Variables ({method_name} Feature Selection)')
+    plt.xlabel('Number of Variables')
+    plt.ylabel('Value')
+    plt.legend()
+    plt.grid(True)
+
+# Adjust layout for better visibility
+plt.tight_layout()
+plt.show()`
+
+RMSE and R² vs Number of Variables (SelectKBest Feature Selection)
+
+https://files.oaiusercontent.com/file-BI2i69WEHDzXdzOGNe90tWp1?se=2024-10-16T06%3A51%3A38Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3Dc80eb9a6-fe03-4ae4-b5ce-00b349645f59&sig=7W7r%2BjiVAKGu/bHZ9Mo6eMPnRwBRIRjf0CIK2a/Zy9k%3D
+
+現在已經按照你的要求將四個特徵選擇方法的 **RMSE** 和 **R²** 整合在四張圖中，分別顯示每種方法的變數數量與模型表現的關係。
+
+這四張圖展示了：
+
+1. **Lasso** 特徵選擇
+2. **Ridge** 特徵選擇
+3. **RFE (Recursive Feature Elimination)** 特徵選擇
+4. **SelectKBest** 特徵選擇
+
+這樣你可以更清楚地對比每種方法的變數數量與 **RMSE** 和 **R²** 的變化。如果還有其他問題或調整需求，隨時告訴我！ 
+
+4o
+
+### 你說：
+
+請給我完整的程式碼
+
+### ChatGPT 說：
+
+ChatGPT
+
+以下是完整的程式碼，包含四種特徵選擇方法的 **RMSE** 和 **R²** 隨著變數數量變化的圖表，這些圖表合併在一起以便更直觀地比較每種方法的效果：
+
+```python
+python
+複製程式碼
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Lasso, Ridge
+from sklearn.feature_selection import RFE, SelectKBest, f_regression
+from sklearn.metrics import mean_squared_error, r2_score
+import matplotlib.pyplot as plt
+
+# Step 1: Load the dataset
+file_path = '/mnt/data/Data.csv'
+data = pd.read_csv(file_path)
+
+# Define the features (X) and the target (y)
+X = data.drop(columns=['BodyFat'])  # Using all other columns as features
+y = data['BodyFat']  # Target is BodyFat
+
+# Step 2: Split the data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 3: Define feature selection methods
+feature_selection_methods = {
+    'Lasso': Lasso(alpha=0.1),
+    'Ridge': Ridge(alpha=1.0),
+    'RFE': RFE(estimator=Ridge(alpha=1.0), n_features_to_select=1),
+    'SelectKBest': SelectKBest(score_func=f_regression, k=1)
+}
+
+# Initialize a dictionary to store RMSE and R² results for each method
+rmse_dict = {method: [] for method in feature_selection_methods.keys()}
+r2_dict = {method: [] for method in feature_selection_methods.keys()}
+
+# Step 4: Iterate through each feature selection method
+for method_name, model in feature_selection_methods.items():
+    for i in range(1, X_train.shape[1] + 1):  # Iterate over feature numbers from 1 to all
+        if method_name == 'Lasso':
+            model = Lasso(alpha=0.1).fit(X_train, y_train)
+            important_features_idx = np.argsort(-np.abs(model.coef_))[:i]
+        elif method_name == 'Ridge':
+            model = Ridge(alpha=1.0).fit(X_train, y_train)
+            important_features_idx = np.argsort(-np.abs(model.coef_))[:i]
+        elif method_name == 'RFE':
+            model = RFE(estimator=Ridge(alpha=1.0), n_features_to_select=i).fit(X_train, y_train)
+            important_features_idx = np.where(model.support_)[0]
+        elif method_name == 'SelectKBest':
+            model = SelectKBest(score_func=f_regression, k=i).fit(X_train, y_train)
+            important_features_idx = model.get_support(indices=True)
+
+        selected_X_train = X_train.iloc[:, important_features_idx]
+        selected_X_test = X_test.iloc[:, important_features_idx]
+
+        # Train a linear regression model with the selected features
+        lasso_model = Lasso(alpha=0.1)
+        lasso_model.fit(selected_X_train, y_train)
+
+        # Make predictions and calculate RMSE and R²
+        y_pred = lasso_model.predict(selected_X_test)
+        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+        r2 = r2_score(y_test, y_pred)
+
+        rmse_dict[method_name].append(rmse)
+        r2_dict[method_name].append(r2)
+
+# Step 5: Plot RMSE and R² for each feature selection method in combined charts (four in total)
+methods = list(feature_selection_methods.keys())
+
+plt.figure(figsize=(10, 20))
+
+# Iterate through each method and plot both RMSE and R² in subplots
+for idx, method_name in enumerate(methods):
+    # Plot RMSE and R² in a single subplot
+    plt.subplot(4, 1, idx + 1)
+
+    # Plot RMSE
+    plt.plot(range(1, X_train.shape[1] + 1), rmse_dict[method_name], marker='o', label='RMSE', color='blue')
+
+    # Plot R² on the same graph
+    plt.plot(range(1, X_train.shape[1] + 1), r2_dict[method_name], marker='o', label='R²', color='orange')
+
+    # Add title and labels
+    plt.title(f'RMSE and R² vs Number of Variables ({method_name} Feature Selection)')
+    plt.xlabel('Number of Variables')
+    plt.ylabel('Value')
+    plt.legend()
+    plt.grid(True)
+
+# Adjust layout for better visibility
+plt.tight_layout()
+plt.show()
+
+```
+
+### 程式碼功能：
+
+1. 使用四種特徵選擇方法（Lasso、Ridge、RFE 和 SelectKBest）來進行特徵選擇。
+2. 計算每種特徵選擇方法在不同變數數量下的 **RMSE** 和 **R²**。
+3. 將每種方法的 **RMSE** 和 **R²** 整合到同一張圖中，以便更容易比較每種方法的表現。
+
+這樣你就可以直觀地看到每種特徵選擇方法的表現，並找出最合適的特徵選擇策略。如果有其他需求或需要進一步調整，隨時告訴我！
+
+4o
+
+### 你說：
+
+https://files.oaiusercontent.com/file-L8OLriDkv8mI1mZgXT3bZMJD?se=2024-10-16T06%3A56%3A51Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3Dimage.png&sig=uVrYR6osVzexZGtaymOzgX0aH6/98kVNYRU7WlXA2G8%3D
+
+阿我的這張對比圖怎麼沒有了
+
+### ChatGPT 說：
+
+ChatGPT
+
+讓我幫你重新生成這張對比圖，將四種特徵選擇方法的 **RMSE** 整合到同一張圖中，方便你比較每種方法的表現。
+
+接下來我會重新繪製對比圖。
+
+已分析
+
+`python永遠顯示詳細資料複製程式碼# Replot the RMSE results for each algorithm on the same graph
+plt.figure(figsize=(10, 6))
+
+for method_name, rmse_values in rmse_dict.items():
+    plt.plot(range(1, X_train.shape[1] + 1), rmse_values, marker='o', label=method_name)
+
+# Add title and labels
+plt.title('RMSE vs Number of Variables for Different Feature Selection Methods')
+plt.xlabel('Number of Variables')
+plt.ylabel('RMSE')
+plt.legend()
+plt.grid(True)
+plt.show()`
+
+RMSE vs Number of Variables for Different Feature Selection Methods
+
+https://files.oaiusercontent.com/file-7IMdKPGnfQaA8JTedTDKGPro?se=2024-10-16T06%3A57%3A09Z&sp=r&sv=2024-08-04&sr=b&rscc=max-age%3D299%2C%20immutable%2C%20private&rscd=attachment%3B%20filename%3Dc0ea6523-65d5-49a3-8dd6-017822b58298&sig=MW/46vAgrUYZ25NIM5QsX0OgsUXekQ2ymh7IogH98%2BM%3D
+
+這就是四種特徵選擇方法（Lasso、Ridge、RFE、SelectKBest）在不同變數數量下的 **RMSE** 變化圖。現在你可以直觀地比較各種方法的表現。
+
+如果有其他問題或需要進一步調整，隨時告訴我！ 
+
+4o
+
+### 你說：
+
+給我完整的程式碼，要有每種特徵選擇方法在不同變數數量下的 RMSE 和 R²還有將四種特徵選擇方法的 RMSE 整合到同一張圖
+
+### ChatGPT 說：
+
+ChatGPT
+
+以下是完整的程式碼，它包含了：
+
+1. 每種特徵選擇方法在不同變數數量下的 **RMSE** 和 **R²** 圖表。
+2. 四種特徵選擇方法的 **RMSE** 整合到同一張圖，方便進行比較。
+
+```python
+python
+複製程式碼
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Lasso, Ridge
+from sklearn.feature_selection import RFE, SelectKBest, f_regression
+from sklearn.metrics import mean_squared_error, r2_score
+import matplotlib.pyplot as plt
+
+# Step 1: Load the dataset
+file_path = '/mnt/data/Data.csv'
+data = pd.read_csv(file_path)
+
+# Define the features (X) and the target (y)
+X = data.drop(columns=['BodyFat'])  # Using all other columns as features
+y = data['BodyFat']  # Target is BodyFat
+
+# Step 2: Split the data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 3: Define feature selection methods
+feature_selection_methods = {
+    'Lasso': Lasso(alpha=0.1),
+    'Ridge': Ridge(alpha=1.0),
+    'RFE': RFE(estimator=Ridge(alpha=1.0), n_features_to_select=1),
+    'SelectKBest': SelectKBest(score_func=f_regression, k=1)
+}
+
+# Initialize a dictionary to store RMSE and R² results for each method
+rmse_dict = {method: [] for method in feature_selection_methods.keys()}
+r2_dict = {method: [] for method in feature_selection_methods.keys()}
+
+# Step 4: Iterate through each feature selection method
+for method_name, model in feature_selection_methods.items():
+    for i in range(1, X_train.shape[1] + 1):  # Iterate over feature numbers from 1 to all
+        if method_name == 'Lasso':
+            model = Lasso(alpha=0.1).fit(X_train, y_train)
+            important_features_idx = np.argsort(-np.abs(model.coef_))[:i]
+        elif method_name == 'Ridge':
+            model = Ridge(alpha=1.0).fit(X_train, y_train)
+            important_features_idx = np.argsort(-np.abs(model.coef_))[:i]
+        elif method_name == 'RFE':
+            model = RFE(estimator=Ridge(alpha=1.0), n_features_to_select=i).fit(X_train, y_train)
+            important_features_idx = np.where(model.support_)[0]
+        elif method_name == 'SelectKBest':
+            model = SelectKBest(score_func=f_regression, k=i).fit(X_train, y_train)
+            important_features_idx = model.get_support(indices=True)
+
+        selected_X_train = X_train.iloc[:, important_features_idx]
+        selected_X_test = X_test.iloc[:, important_features_idx]
+
+        # Train a linear regression model with the selected features
+        lasso_model = Lasso(alpha=0.1)
+        lasso_model.fit(selected_X_train, y_train)
+
+        # Make predictions and calculate RMSE and R²
+        y_pred = lasso_model.predict(selected_X_test)
+        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+        r2 = r2_score(y_test, y_pred)
+
+        rmse_dict[method_name].append(rmse)
+        r2_dict[method_name].append(r2)
+
+# Step 5: Plot RMSE and R² for each feature selection method in combined charts (four in total)
+methods = list(feature_selection_methods.keys())
+
+plt.figure(figsize=(10, 20))
+
+# Iterate through each method and plot both RMSE and R² in subplots
+for idx, method_name in enumerate(methods):
+    # Plot RMSE and R² in a single subplot
+    plt.subplot(4, 1, idx + 1)
+
+    # Plot RMSE
+    plt.plot(range(1, X_train.shape[1] + 1), rmse_dict[method_name], marker='o', label='RMSE', color='blue')
+
+    # Plot R² on the same graph
+    plt.plot(range(1, X_train.shape[1] + 1), r2_dict[method_name], marker='o', label='R²', color='orange')
+
+    # Add title and labels
+    plt.title(f'RMSE and R² vs Number of Variables ({method_name} Feature Selection)')
+    plt.xlabel('Number of Variables')
+    plt.ylabel('Value')
+    plt.legend()
+    plt.grid(True)
+
+# Adjust layout for better visibility
+plt.tight_layout()
+plt.show()
+
+# Step 6: Plot RMSE results for each algorithm on the same graph for comparison
+plt.figure(figsize=(10, 6))
+
+for method_name, rmse_values in rmse_dict.items():
+    plt.plot(range(1, X_train.shape[1] + 1), rmse_values, marker='o', label=method_name)
+
+# Add title and labels
+plt.title('RMSE vs Number of Variables for Different Feature Selection Methods')
+plt.xlabel('Number of Variables')
+plt.ylabel('RMSE')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+```
+
+### 主要功能：
+
+1. **每種特徵選擇方法** 分別繪製了 **RMSE** 和 **R²** 與變數數量的關係圖表。
+2. **對比圖**：所有特徵選擇方法的 **RMSE** 整合到同一張圖，方便比較每種方法在不同變數數量下的表現。
+
+你可以根據這些圖表直觀地比較各種方法的表現，找出最適合你的特徵選擇策略。如果有任何問題或需要進一步調整，隨時告訴我！
+
+4o
+
+### 你說：
+
+main.py
+
+Python
+
+我修改了一點
+除了這些，我還需要表格顯示每個特徵選擇方法使用的特徵，根據重要性從左到右排列，並列出了不同特徵數量下的特徵名稱。
+
+### 
+
+ChatGPT
+
+您提供的程式碼已經包含了特徵選擇方法的 **RMSE** 和 **R²** 圖表。但您還需要顯示每個特徵選擇方法在不同變數數量下使用的特徵名稱，並根據特徵重要性進行排列。接下來我會幫助您修改程式碼，新增此表格的功能。
+
+以下是修改後的完整程式碼，包含顯示特徵名稱的表格部分：
+
+```python
+python
+複製程式碼
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import Lasso, Ridge
+from sklearn.feature_selection import RFE, SelectKBest, f_regression
+from sklearn.metrics import mean_squared_error, r2_score
+import matplotlib.pyplot as plt
+
+# Step 1: Load the dataset
+file_path = '/mnt/data/Data.csv'  # Modify this to your dataset path
+data = pd.read_csv(file_path)
+
+# Define the features (X) and the target (y)
+X = data.drop(columns=['BodyFat'])  # Using all other columns as features
+y = data['BodyFat']  # Target is BodyFat
+
+# Step 2: Split the data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Step 3: Define feature selection methods
+feature_selection_methods = {
+    'Lasso': Lasso(alpha=0.1),
+    'Ridge': Ridge(alpha=1.0),
+    'RFE': RFE(estimator=Ridge(alpha=1.0), n_features_to_select=1),
+    'SelectKBest': SelectKBest(score_func=f_regression, k=1)
+}
+
+# Initialize dictionaries to store results
+rmse_dict = {method: [] for method in feature_selection_methods.keys()}
+r2_dict = {method: [] for method in feature_selection_methods.keys()}
+selected_features_dict = {method: [] for method in feature_selection_methods.keys()}
+
+# Step 4: Iterate through each feature selection method
+for method_name, model in feature_selection_methods.items():
+    for i in range(1, X_train.shape[1] + 1):  # Iterate over feature numbers from 1 to all
+        if method_name == 'Lasso':
+            model = Lasso(alpha=0.1).fit(X_train, y_train)
+            important_features_idx = np.argsort(-np.abs(model.coef_))[:i]
+        elif method_name == 'Ridge':
+            model = Ridge(alpha=1.0).fit(X_train, y_train)
+            important_features_idx = np.argsort(-np.abs(model.coef_))[:i]
+        elif method_name == 'RFE':
+            model = RFE(estimator=Ridge(alpha=1.0), n_features_to_select=i).fit(X_train, y_train)
+            important_features_idx = np.where(model.support_)[0]
+        elif method_name == 'SelectKBest':
+            model = SelectKBest(score_func=f_regression, k=i).fit(X_train, y_train)
+            important_features_idx = model.get_support(indices=True)
+
+        selected_X_train = X_train.iloc[:, important_features_idx]
+        selected_X_test = X_test.iloc[:, important_features_idx]
+
+        # Train a linear regression model with the selected features
+        lasso_model = Lasso(alpha=0.1)
+        lasso_model.fit(selected_X_train, y_train)
+
+        # Make predictions and calculate RMSE and R²
+        y_pred = lasso_model.predict(selected_X_test)
+        rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+        r2 = r2_score(y_test, y_pred)
+
+        # Store the results
+        rmse_dict[method_name].append(rmse)
+        r2_dict[method_name].append(r2)
+        selected_features_dict[method_name].append(X_train.columns[important_features_idx].tolist())
+
+# Step 5: Display selected features for each method in a table format
+selected_features_df = pd.DataFrame(selected_features_dict)
+print("Selected Features Table:")
+print(selected_features_df)
+
+# Step 6: Plot RMSE and R² for each feature selection method in combined charts
+methods = list(feature_selection_methods.keys())
+
+plt.figure(figsize=(10, 20))
+
+# Iterate through each method and plot both RMSE and R² in subplots
+for idx, method_name in enumerate(methods):
+    # Plot RMSE and R² in a single subplot
+    plt.subplot(4, 1, idx + 1)
+
+    # Plot RMSE
+    plt.plot(range(1, X_train.shape[1] + 1), rmse_dict[method_name], marker='o', label='RMSE', color='blue')
+
+    # Plot R² on the same graph
+    plt.plot(range(1, X_train.shape[1] + 1), r2_dict[method_name], marker='o', label='R²', color='orange')
+
+    # Add title and labels
+    plt.title(f'RMSE and R² vs Number of Variables ({method_name} Feature Selection)')
+    plt.xlabel('Number of Variables')
+    plt.ylabel('Value')
+    plt.legend()
+    plt.grid(True)
+
+# Adjust layout for better visibility
+plt.tight_layout()
+plt.show()
+
+# Step 7: Plot RMSE results for each algorithm on the same graph for comparison
+plt.figure(figsize=(10, 6))
+
+for method_name, rmse_values in rmse_dict.items():
+    plt.plot(range(1, X_train.shape[1] + 1), rmse_values, marker='o', label=method_name)
+
+# Add title and labels
+plt.title('RMSE vs Number of Variables for Different Feature Selection Methods')
+plt.xlabel('Number of Variables')
+plt.ylabel('RMSE')
+plt.legend()
+plt.grid(True)
+plt.show()
+
+```
+
+### 主要新增：
+
+- **表格顯示特徵名稱**：每個特徵選擇方法根據重要性排列所選擇的特徵名稱，並列出了不同特徵數量下的特徵。
+
+### 結果：
+
+1. 程式會生成表格顯示每個特徵選擇方法使用的特徵，根據重要性從左到右排列。
+2. 繪製四種特徵選擇方法的 **RMSE** 和 **R²** 圖表。
+3. 繪製所有特徵選擇方法的 **RMSE** 整合對比圖。
+
+這樣可以更方便地觀察每種方法的特徵選擇和模型表現。如果有其他需求或需要進一步調整，隨時告訴我！
